@@ -91,4 +91,10 @@ onlp_sysi_platform_info_get(onlp_platform_info_t* pi)
     return ONLP_STATUS_OK;
 }
 
+void
+onlp_sysi_platform_info_free(onlp_platform_info_t* pi)
+{
+    aim_free(pi->cpld_versions);
+}
+
 

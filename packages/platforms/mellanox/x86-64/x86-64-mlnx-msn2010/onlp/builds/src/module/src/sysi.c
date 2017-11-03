@@ -59,13 +59,6 @@ int mc_get_platform_info(mlnx_platform_info_t* mlnx_platform)
 	return ONLP_STATUS_OK;
 }
 
-void
-onlp_sysi_platform_info_free(onlp_platform_info_t* pi)
-{
-    aim_free(pi->cpld_versions);
-}
-
-
 int
 onlp_sysi_oids_get(onlp_oid_t* table, int max)
 {
