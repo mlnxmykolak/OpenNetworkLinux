@@ -1,53 +1,13 @@
-From e3448e71adb1fdd7f403c568ef5c2ed5adf2b197 Mon Sep 17 00:00:00 2001
-From: Vadim Pasternak <vadimp@mellanox.com>
-Date: Thu, 10 Nov 2016 21:26:23 +0000
-Subject: [v4.9 backport 14/28] i2c: mux: mellanox: add driver
+Linux backport patch. Includes following commits:
+e3448e71adb1fdd7f403c568ef5c2ed5adf2b197
+c3bb77620da428884807fb2f6f3485644e146f84
+db5f807ee3dcc779b78f59982cc3e89863069e9c
 
-This driver allows I2C routing controlled through CPLD select registers on
-a wide range of Mellanox systems (CPLD Lattice device).
-MUX selection is provided by digital and analog HW. Analog part is not
-under SW control.
-Digital part is under CPLD control (channel selection/de-selection).
 
-Connectivity schema.
-.---.             .-------------.
-| l |             |             |-- i2cx1 -- i2cx8
-| i |-- i2cn --+--| mlxcpld mux |
-| n |          |  |             |-- i2cy1 -- i2cy8
-| u |          |  '-------------'
-| x |          |         |
-'---'          '---------'
-
-i2c-mux-mlxpcld does not necessarily require i2c-mlxcpld. It can be used
-along with another bus driver, and still control i2c routing through CPLD
-mux selection, in case the system is equipped with CPLD capable of mux
-selection control.
-
-The Kconfig currently controlling compilation of this code is:
-drivers/i2c/muxes/Kconfig:config I2C_MUX_MLXCPLD
-
-Signed-off-by: Michael Shych <michaelsh@mellanox.com>
-Signed-off-by: Vadim Pasternak <vadimp@mellanox.com>
-Reviewed-by: Jiri Pirko <jiri@mellanox.com>
-Acked-by: Peter Rosin <peda@axentia.se>
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-
-Conflicts:
-	MAINTAINERS
----
- drivers/i2c/muxes/Kconfig           |  11 ++
- drivers/i2c/muxes/Makefile          |   1 +
- drivers/i2c/muxes/i2c-mux-mlxcpld.c | 220 ++++++++++++++++++++++++++++++++++++
- include/linux/i2c/mlxcpld.h         |  52 +++++++++
- 4 files changed, 284 insertions(+)
- create mode 100644 drivers/i2c/muxes/i2c-mux-mlxcpld.c
- create mode 100644 include/linux/i2c/mlxcpld.h
-
-diff --git a/drivers/i2c/muxes/Kconfig b/drivers/i2c/muxes/Kconfig
-index 96de9ce..10b3d17 100644
---- a/drivers/i2c/muxes/Kconfig
-+++ b/drivers/i2c/muxes/Kconfig
-@@ -82,4 +82,15 @@ config I2C_DEMUX_PINCTRL
+diff -Nur a/drivers/i2c/muxes/Kconfig b/drivers/i2c/muxes/Kconfig
+--- a/drivers/i2c/muxes/Kconfig	2017-11-12 08:13:59.176044126 +0000
++++ b/drivers/i2c/muxes/Kconfig	2017-11-12 08:14:27.992044509 +0000
+@@ -82,4 +82,15 @@
  	  demultiplexer that uses the pinctrl subsystem. This is useful if you
  	  want to change the I2C master at run-time depending on features.
  
@@ -63,11 +23,10 @@ index 96de9ce..10b3d17 100644
 +          will be called i2c-mux-mlxcpld.
 +
  endmenu
-diff --git a/drivers/i2c/muxes/Makefile b/drivers/i2c/muxes/Makefile
-index 7c267c2..9948fa4 100644
---- a/drivers/i2c/muxes/Makefile
-+++ b/drivers/i2c/muxes/Makefile
-@@ -6,6 +6,7 @@ obj-$(CONFIG_I2C_ARB_GPIO_CHALLENGE)	+= i2c-arb-gpio-challenge.o
+diff -Nur a/drivers/i2c/muxes/Makefile b/drivers/i2c/muxes/Makefile
+--- a/drivers/i2c/muxes/Makefile	2017-11-12 08:13:59.176044126 +0000
++++ b/drivers/i2c/muxes/Makefile	2017-11-12 08:14:27.992044509 +0000
+@@ -6,6 +6,7 @@
  obj-$(CONFIG_I2C_DEMUX_PINCTRL)		+= i2c-demux-pinctrl.o
  
  obj-$(CONFIG_I2C_MUX_GPIO)	+= i2c-mux-gpio.o
@@ -75,12 +34,10 @@ index 7c267c2..9948fa4 100644
  obj-$(CONFIG_I2C_MUX_PCA9541)	+= i2c-mux-pca9541.o
  obj-$(CONFIG_I2C_MUX_PCA954x)	+= i2c-mux-pca954x.o
  obj-$(CONFIG_I2C_MUX_PINCTRL)	+= i2c-mux-pinctrl.o
-diff --git a/drivers/i2c/muxes/i2c-mux-mlxcpld.c b/drivers/i2c/muxes/i2c-mux-mlxcpld.c
-new file mode 100644
-index 0000000..3ab654b
---- /dev/null
-+++ b/drivers/i2c/muxes/i2c-mux-mlxcpld.c
-@@ -0,0 +1,220 @@
+diff -Nur a/drivers/i2c/muxes/i2c-mux-mlxcpld.c b/drivers/i2c/muxes/i2c-mux-mlxcpld.c
+--- a/drivers/i2c/muxes/i2c-mux-mlxcpld.c	1970-01-01 00:00:00.000000000 +0000
++++ b/drivers/i2c/muxes/i2c-mux-mlxcpld.c	2017-11-12 08:14:27.992044509 +0000
+@@ -0,0 +1,221 @@
 +/*
 + * drivers/i2c/muxes/i2c-mux-mlxcpld.c
 + * Copyright (c) 2016 Mellanox Technologies. All rights reserved.
@@ -123,7 +80,6 @@ index 0000000..3ab654b
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
 +#include <linux/slab.h>
-+#include <linux/version.h>
 +#include <linux/i2c/mlxcpld.h>
 +
 +#define CPLD_MUX_MAX_NCHANS	8
@@ -178,6 +134,7 @@ index 0000000..3ab654b
 +				 struct i2c_client *client, u8 val)
 +{
 +	struct mlxcpld_mux_plat_data *pdata = dev_get_platdata(&client->dev);
++	int ret = -ENODEV;
 +
 +	if (adap->algo->master_xfer) {
 +		struct i2c_msg msg;
@@ -187,17 +144,21 @@ index 0000000..3ab654b
 +		msg.flags = 0;
 +		msg.len = 2;
 +		msg.buf = msgbuf;
-+		return __i2c_transfer(adap, &msg, 1);
++		ret = __i2c_transfer(adap, &msg, 1);
++
++		if (ret >= 0 && ret != 1)
++			ret = -EREMOTEIO;
 +	} else if (adap->algo->smbus_xfer) {
 +		union i2c_smbus_data data;
 +
 +		data.byte = val;
-+		return adap->algo->smbus_xfer(adap, client->addr,
-+					      client->flags, I2C_SMBUS_WRITE,
-+					      pdata->sel_reg_addr,
-+					      I2C_SMBUS_BYTE_DATA, &data);
-+	} else
-+		return -ENODEV;
++		ret = adap->algo->smbus_xfer(adap, client->addr,
++					     client->flags, I2C_SMBUS_WRITE,
++					     pdata->sel_reg_addr,
++					     I2C_SMBUS_BYTE_DATA, &data);
++	}
++
++	return ret;
 +}
 +
 +static int mlxcpld_mux_select_chan(struct i2c_mux_core *muxc, u32 chan)
@@ -210,10 +171,7 @@ index 0000000..3ab654b
 +	/* Only select the channel if its different from the last channel */
 +	if (data->last_chan != regval) {
 +		err = mlxcpld_mux_reg_write(muxc->parent, client, regval);
-+		if (err)
-+			data->last_chan = 0;
-+		else
-+			data->last_chan = regval;
++		data->last_chan = err < 0 ? 0 : regval;
 +	}
 +
 +	return err;
@@ -301,11 +259,9 @@ index 0000000..3ab654b
 +MODULE_DESCRIPTION("Mellanox I2C-CPLD-MUX driver");
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_ALIAS("platform:i2c-mux-mlxcpld");
-diff --git a/include/linux/i2c/mlxcpld.h b/include/linux/i2c/mlxcpld.h
-new file mode 100644
-index 0000000..b08dcb1
---- /dev/null
-+++ b/include/linux/i2c/mlxcpld.h
+diff -Nur a/include/linux/i2c/mlxcpld.h b/include/linux/i2c/mlxcpld.h
+--- a/include/linux/i2c/mlxcpld.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/i2c/mlxcpld.h	2017-11-12 08:17:03.032046568 +0000
 @@ -0,0 +1,52 @@
 +/*
 + * mlxcpld.h - Mellanox I2C multiplexer support in CPLD
@@ -359,6 +315,3 @@ index 0000000..b08dcb1
 +};
 +
 +#endif /* _LINUX_I2C_MLXCPLD_H */
--- 
-2.1.4
-

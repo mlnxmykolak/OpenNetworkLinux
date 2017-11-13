@@ -1,57 +1,17 @@
-From 91973760712f350048a0fa8e0363e260bf874313 Mon Sep 17 00:00:00 2001
-From: Vadim Pasternak <vadimp@mellanox.com>
-Date: Tue, 26 Sep 2017 22:21:06 +0000
-Subject: [v4.9 backport 19/28] platform/mellanox: Introduce Mellanox hardware
- platform hotplug driver
+Linux backport patch. Includes following commits:
+2926024b5081fc8d4b086677bafa1ac55ea0b911
+6124fdf76488681713f278f3fdf2ba2dfe760211
+c84002d15210ca130263e23911cc399202124eb4
+07b89c2b2a5e8ce30166b96f87b324c6b419f108
+91973760712f350048a0fa8e0363e260bf874313
+c2e714e56360e34f88e0a75ee74e467d8b82de75
+af4779be0f2cec63f4cb15d3db78c5de3523756a
+d53bc5dc941653f0ed93b11a647bd6ff40f40ef2
 
-It introduces mlxreg-hotplug driver with the generic regmap interface for
-hardware access to the programmable device with interrupt controlling
-logic. Where the programmable devices can be attached to different
-interfaces types, like I2C, LPC, SPI.
-Driver has been tested on systems based on x86 and ARM architectures.
 
-Signed-off-by: Vadim Pasternak <vadimp@mellanox.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
----
- drivers/platform/Kconfig                   |   2 +
- drivers/platform/Makefile                  |   1 +
- drivers/platform/mellanox/Kconfig          |  25 +
- drivers/platform/mellanox/Makefile         |   1 +
- drivers/platform/mellanox/mlxreg-hotplug.c | 712 +++++++++++++++++++++++++++++
- include/linux/platform_data/mlxreg.h       | 138 ++++++
- 6 files changed, 879 insertions(+)
- create mode 100644 drivers/platform/mellanox/Kconfig
- create mode 100644 drivers/platform/mellanox/Makefile
- create mode 100644 drivers/platform/mellanox/mlxreg-hotplug.c
- create mode 100644 include/linux/platform_data/mlxreg.h
-
-diff --git a/drivers/platform/Kconfig b/drivers/platform/Kconfig
-index c11db8b..d4c2e42 100644
---- a/drivers/platform/Kconfig
-+++ b/drivers/platform/Kconfig
-@@ -8,3 +8,5 @@ endif
- source "drivers/platform/goldfish/Kconfig"
- 
- source "drivers/platform/chrome/Kconfig"
-+
-+source "drivers/platform/mellanox/Kconfig"
-diff --git a/drivers/platform/Makefile b/drivers/platform/Makefile
-index ca26925..bd87ce0 100644
---- a/drivers/platform/Makefile
-+++ b/drivers/platform/Makefile
-@@ -3,6 +3,7 @@
- #
- 
- obj-$(CONFIG_X86)		+= x86/
-+obj-$(CONFIG_MELLANOX_PLATFORM)	+= mellanox/
- obj-$(CONFIG_MIPS)		+= mips/
- obj-$(CONFIG_OLPC)		+= olpc/
- obj-$(CONFIG_GOLDFISH)		+= goldfish/
-diff --git a/drivers/platform/mellanox/Kconfig b/drivers/platform/mellanox/Kconfig
-new file mode 100644
-index 0000000..01ec857
---- /dev/null
-+++ b/drivers/platform/mellanox/Kconfig
+diff -Nur a/drivers/platform/mellanox/Kconfig b/drivers/platform/mellanox/Kconfig
+--- a/drivers/platform/mellanox/Kconfig	1970-01-01 00:00:00.000000000 +0000
++++ b/drivers/platform/mellanox/Kconfig	2017-11-12 08:54:58.200076777 +0000
 @@ -0,0 +1,25 @@
 +#
 +# Platform support for Mellanox hardware
@@ -59,7 +19,7 @@ index 0000000..01ec857
 +
 +menuconfig MELLANOX_PLATFORM
 +	bool "Platform support for Mellanox hardware"
-+	depends on (X86 && !OF_DYNAMIC) || ARM || COMPILE_TEST
++	depends on X86 || ARM || COMPILE_TEST
 +	---help---
 +	  Say Y here to get to see options for platform support for
 +	  Mellanox systems. This option alone does not add any kernel code.
@@ -78,19 +38,15 @@ index 0000000..01ec857
 +	  cables and fans on the wide range Mellanox IB and Ethernet systems.
 +
 +endif # MELLANOX_PLATFORM
-diff --git a/drivers/platform/mellanox/Makefile b/drivers/platform/mellanox/Makefile
-new file mode 100644
-index 0000000..f58d089
---- /dev/null
-+++ b/drivers/platform/mellanox/Makefile
+diff -Nur a/drivers/platform/mellanox/Makefile b/drivers/platform/mellanox/Makefile
+--- a/drivers/platform/mellanox/Makefile	1970-01-01 00:00:00.000000000 +0000
++++ b/drivers/platform/mellanox/Makefile	2017-11-12 08:54:58.200076777 +0000
 @@ -0,0 +1 @@
 +obj-$(CONFIG_MLXREG_HOTPLUG)	+= mlxreg-hotplug.o
-diff --git a/drivers/platform/mellanox/mlxreg-hotplug.c b/drivers/platform/mellanox/mlxreg-hotplug.c
-new file mode 100644
-index 0000000..95f21f7
---- /dev/null
-+++ b/drivers/platform/mellanox/mlxreg-hotplug.c
-@@ -0,0 +1,712 @@
+diff -Nur a/drivers/platform/mellanox/mlxreg-hotplug.c b/drivers/platform/mellanox/mlxreg-hotplug.c
+--- a/drivers/platform/mellanox/mlxreg-hotplug.c	1970-01-01 00:00:00.000000000 +0000
++++ b/drivers/platform/mellanox/mlxreg-hotplug.c	2017-11-12 08:54:58.200076777 +0000
+@@ -0,0 +1,710 @@
 +/*
 + * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
 + * Copyright (c) 2017 Vadim Pasternak <vadimp@mellanox.com>
@@ -126,19 +82,15 @@ index 0000000..95f21f7
 +
 +#include <linux/bitops.h>
 +#include <linux/device.h>
-+#include <linux/gpio.h>
 +#include <linux/hwmon.h>
 +#include <linux/hwmon-sysfs.h>
-+#include <linux/interrupt.h>
 +#include <linux/i2c.h>
-+#include <linux/io.h>
-+#include <linux/leds.h>
++#include <linux/interrupt.h>
 +#include <linux/module.h>
 +#include <linux/of_device.h>
 +#include <linux/platform_data/mlxreg.h>
 +#include <linux/platform_device.h>
 +#include <linux/regmap.h>
-+#include <linux/wait.h>
 +#include <linux/workqueue.h>
 +
 +/* Offset of event and mask registers from status register. */
@@ -193,7 +145,7 @@ index 0000000..95f21f7
 +	bool after_probe;
 +};
 +
-+#if defined(CONFIG_OF_DYNAMIC) && !defined(CONFIG_COMPILE_TEST)
++#if defined(CONFIG_OF_DYNAMIC)
 +/**
 + * struct mlxreg_hotplug_device_en - Open Firmware property for enabling device
 + *
@@ -334,8 +286,10 @@ index 0000000..95f21f7
 +	return sprintf(buf, "%u\n", regval);
 +}
 +
-+static int
-+mlxreg_hotplug_attr_init(struct mlxreg_hotplug_priv_data *priv)
++#define PRIV_ATTR(i) priv->mlxreg_hotplug_attr[i]
++#define PRIV_DEV_ATTR(i) priv->mlxreg_hotplug_dev_attr[i]
++
++static int mlxreg_hotplug_attr_init(struct mlxreg_hotplug_priv_data *priv)
 +{
 +	struct mlxreg_core_hotplug_platform_data *pdata;
 +	struct mlxreg_core_item *item;
@@ -345,40 +299,39 @@ index 0000000..95f21f7
 +	pdata = dev_get_platdata(&priv->pdev->dev);
 +	item = pdata->items;
 +
-+	for (i = 0; i < pdata->counter; i++)
-+		num_attrs += (item + i)->count;
++	/* Go over all kinds of items - psu, pwr, fan. */
++	for (i = 0; i < pdata->counter; i++, item++) {
++		num_attrs += item->count;
++		data = item->data;
++		/* Go over all units within the item. */
++		for (j = 0; j < item->count; j++, data++, id++) {
++			PRIV_ATTR(id) = &PRIV_DEV_ATTR(id).dev_attr.attr;
++			PRIV_ATTR(id)->name = devm_kasprintf(&priv->pdev->dev,
++							     GFP_KERNEL,
++							     data->label);
++
++			if (!PRIV_ATTR(id)->name) {
++				dev_err(priv->dev, "Memory allocation failed for attr %d.\n",
++					id);
++				return -ENOMEM;
++			}
++
++			PRIV_DEV_ATTR(id).dev_attr.attr.name =
++							PRIV_ATTR(id)->name;
++			PRIV_DEV_ATTR(id).dev_attr.attr.mode = 0444;
++			PRIV_DEV_ATTR(id).dev_attr.show =
++						mlxreg_hotplug_attr_show;
++			PRIV_DEV_ATTR(id).nr = i;
++			PRIV_DEV_ATTR(id).index = j;
++			sysfs_attr_init(&PRIV_DEV_ATTR(id).dev_attr.attr);
++		}
++	}
 +
 +	priv->group.attrs = devm_kzalloc(&priv->pdev->dev, num_attrs *
 +					 sizeof(struct attribute *),
 +					 GFP_KERNEL);
 +	if (!priv->group.attrs)
 +		return -ENOMEM;
-+
-+	for (i = 0; i < pdata->counter; i++, item++) {
-+		data = item->data;
-+		for (j = 0; j < item->count; j++, data++, id++) {
-+			priv->mlxreg_hotplug_attr[id] =
-+			&priv->mlxreg_hotplug_dev_attr[id].dev_attr.attr;
-+			priv->mlxreg_hotplug_attr[id]->name =
-+				devm_kasprintf(&priv->pdev->dev, GFP_KERNEL,
-+					       data->label);
-+
-+			if (!priv->mlxreg_hotplug_attr[id]->name) {
-+				dev_err(priv->dev, "Memory allocation failed for attr %d.\n",
-+					id);
-+				return -ENOMEM;
-+			}
-+
-+			priv->mlxreg_hotplug_dev_attr[id].dev_attr.attr.mode =
-+									0444;
-+			priv->mlxreg_hotplug_dev_attr[id].dev_attr.show =
-+						mlxreg_hotplug_attr_show;
-+			priv->mlxreg_hotplug_dev_attr[id].nr = i;
-+			priv->mlxreg_hotplug_dev_attr[id].index = j;
-+			sysfs_attr_init(
-+			&priv->mlxreg_hotplug_dev_attr[id].dev_attr.attr);
-+		}
-+	}
 +
 +	priv->group.attrs = priv->mlxreg_hotplug_attr;
 +	priv->groups[0] = &priv->group;
@@ -645,6 +598,12 @@ index 0000000..95f21f7
 +	if (ret)
 +		goto access_error;
 +
++	/* Keep low aggregation initial status as zero and unmask events. */
++	ret = regmap_write(priv->regmap, pdata->cell_low +
++			   MLXREG_HOTPLUG_AGGR_MASK_OFF, pdata->mask_low);
++	if (ret)
++		goto access_error;
++
 +	/* Invoke work handler for initializing hot plug devices setting. */
 +	mlxreg_hotplug_work_handler(&priv->dwork_irq.work);
 +
@@ -671,6 +630,10 @@ index 0000000..95f21f7
 +	item = pdata->items;
 +	disable_irq(priv->irq);
 +	cancel_delayed_work_sync(&priv->dwork_irq);
++
++	/* Mask low aggregation event. */
++	regmap_write(priv->regmap, pdata->cell_low +
++		     MLXREG_HOTPLUG_AGGR_MASK_OFF, 0);
 +
 +	/* Mask aggregation event. */
 +	regmap_write(priv->regmap, pdata->cell + MLXREG_HOTPLUG_AGGR_MASK_OFF,
@@ -780,18 +743,9 @@ index 0000000..95f21f7
 +	return 0;
 +}
 +
-+#if defined(CONFIG_OF)
-+static const struct of_device_id mlxreg_hotplug_dt_match[] = {
-+	{ .compatible = "mellanox,mlxreg-hotplug" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, mlxreg_hotplug_dt_match);
-+#endif
-+
 +static struct platform_driver mlxreg_hotplug_driver = {
 +	.driver = {
-+	    .name = "mlxreg-hotplug",
-+	    .of_match_table = of_match_ptr(mlxreg_hotplug_dt_match),
++		.name = "mlxreg-hotplug",
 +	},
 +	.probe = mlxreg_hotplug_probe,
 +	.remove = mlxreg_hotplug_remove,
@@ -803,12 +757,10 @@ index 0000000..95f21f7
 +MODULE_DESCRIPTION("Mellanox regmap hotplug platform driver");
 +MODULE_LICENSE("Dual BSD/GPL");
 +MODULE_ALIAS("platform:mlxreg-hotplug");
-diff --git a/include/linux/platform_data/mlxreg.h b/include/linux/platform_data/mlxreg.h
-new file mode 100644
-index 0000000..456b805
---- /dev/null
-+++ b/include/linux/platform_data/mlxreg.h
-@@ -0,0 +1,138 @@
+diff -Nur a/include/linux/platform_data/mlxreg.h b/include/linux/platform_data/mlxreg.h
+--- a/include/linux/platform_data/mlxreg.h	1970-01-01 00:00:00.000000000 +0000
++++ b/include/linux/platform_data/mlxreg.h	2017-11-12 09:04:09.796084101 +0000
+@@ -0,0 +1,142 @@
 +/*
 + * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
 + * Copyright (c) 2017 Vadim Pasternak <vadimp@mellanox.com>
@@ -936,6 +888,8 @@ index 0000000..456b805
 + * @counter: number of the components with the hotplug capability;
 + * @cell: location of top aggregation interrupt register;
 + * @mask: top aggregation interrupt common mask;
++ * @cell_low: location of low aggregation interrupt register;
++ * @mask_low: low aggregation interrupt common mask;
 + */
 +struct mlxreg_core_hotplug_platform_data {
 +	struct mlxreg_core_item *items;
@@ -944,9 +898,8 @@ index 0000000..456b805
 +	int counter;
 +	u32 cell;
 +	u32 mask;
++	u32 cell_low;
++	u32 mask_low;
 +};
 +
 +#endif /* __LINUX_PLATFORM_DATA_MLXREG_H */
--- 
-2.1.4
-
