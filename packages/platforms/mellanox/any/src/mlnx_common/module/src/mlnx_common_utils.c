@@ -22,10 +22,44 @@
  *
  *
  ***********************************************************/
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <sys/utsname.h>
+#include <linux/version.h>
+#include <AIM/aim.h>
+#include <onlplib/file.h>
+#include <onlp/onlp.h>
+#include <sys/mman.h>
+#include "mlnx_common_log.h"
+#include "mlnx_common_int.h"
 
-#define NUM_OF_SFP_PORT        16
-
-int get_sfp_port_num()
+int
+mc_get_kernel_ver()
 {
-    return NUM_OF_SFP_PORT;
+    struct utsname buff;
+    char ver[4];
+    char *p;
+    int i = 0;
+
+    if (uname(&buff) != 0)
+        return ONLP_STATUS_E_INTERNAL;
+
+    p = buff.release;
+
+    while (*p) {
+        if (isdigit(*p)) {
+            ver[i] = strtol(p, &p, 10);
+            i++;
+            if (i >= 3)
+                break;
+        } else {
+            p++;
+        }
+    }
+
+    return KERNEL_VERSION(ver[0], ver[1], ver[2]);
 }

@@ -35,40 +35,27 @@
 #include "platform_lib.h"
 #include "x86_64_mlnx_msn2100_int.h"
 #include "x86_64_mlnx_msn2100_log.h"
+#include <mlnx_common/mlnx_common.h>
 
 #define ONL_PLATFORM_NAME  "x86-64-mlnx-msn2100-r0"
 #define ONIE_PLATFORM_NAME "x86_64-mlnx_msn2100-r0"
 
 #define COMMAND_OUTPUT_BUFFER        256
 
-#define PREFIX_PATH_ON_CPLD_DEV          "/bsp/cpld"
-#define NUM_OF_CPLD                      2
-static char arr_cplddev_name[NUM_OF_CPLD][30] =
+int mc_get_platform_info(mlnx_platform_info_t* mlnx_platform)
 {
-    "cpld_brd_version",
-    "cpld_mgmt_version"
-};
+	strncpy(mlnx_platform->onl_platform_name, ONL_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	strncpy(mlnx_platform->onie_platform_name, ONIE_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	mlnx_platform->sfp_num = NUM_OF_SFP_PORT;
+	mlnx_platform->led_num = CHASSIS_LED_COUNT;
+	mlnx_platform->psu_num = CHASSIS_PSU_COUNT;
+	mlnx_platform->fan_num = CHASSIS_FAN_COUNT;
+	mlnx_platform->thermal_num = CHASSIS_THERMAL_COUNT;
+	mlnx_platform->cpld_num = NUM_OF_CPLD;
+	mlnx_platform->psu_fixed = true;
+	mlnx_platform->fan_fixed = true;
 
-const char*
-onlp_sysi_platform_get(void)
-{
-    return ONL_PLATFORM_NAME;
-}
-
-int
-onlp_sysi_platform_info_get(onlp_platform_info_t* pi)
-{
-    int   i, v[NUM_OF_CPLD]={0};
-
-    for (i=0; i < NUM_OF_CPLD; i++) {
-        v[i] = 0;
-        if(onlp_file_read_int(v+i, "%s/%s", PREFIX_PATH_ON_CPLD_DEV, arr_cplddev_name[i]) < 0) {
-            return ONLP_STATUS_E_INTERNAL;
-        }
-    }
-    pi->cpld_versions = aim_fstrdup("brd=%d, mgmt=%d", v[0], v[1]);
-
-    return ONLP_STATUS_OK;
+	return ONLP_STATUS_OK;
 }
 
 void

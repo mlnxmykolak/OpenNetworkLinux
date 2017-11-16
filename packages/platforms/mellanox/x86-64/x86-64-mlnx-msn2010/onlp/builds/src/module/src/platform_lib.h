@@ -33,6 +33,8 @@
 #define CHASSIS_PSU_COUNT     2
 #define CHASSIS_FAN_COUNT     4
 #define CHASSIS_THERMAL_COUNT 7
+#define NUM_OF_SFP_PORT       24
+#define NUM_OF_CPLD           2
 
 #define PSU1_ID 1
 #define PSU2_ID 2

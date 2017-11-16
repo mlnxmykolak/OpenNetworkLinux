@@ -35,6 +35,7 @@
 #include "platform_lib.h"
 #include "x86_64_mlnx_msn2700_int.h"
 #include "x86_64_mlnx_msn2700_log.h"
+#include <mlnx_common/mlnx_common.h>
 
 #define ONL_PLATFORM_NAME             "x86-64-mlnx-msn2700-r0"
 #define ONIE_PLATFORM_NAME            "x86_64-mlnx_msn2700-r0"
@@ -46,35 +47,20 @@
 
 #define COMMAND_OUTPUT_BUFFER         256
 
-#define PREFIX_PATH_ON_CPLD_DEV       "/bsp/cpld"
-#define NUM_OF_CPLD                   3
-static char arr_cplddev_name[NUM_OF_CPLD][30] =
+int mc_get_platform_info(mlnx_platform_info_t* mlnx_platform)
 {
-    "cpld_brd_version",
-    "cpld_mgmt_version",
-    "cpld_port_version"
-};
+	strncpy(mlnx_platform->onl_platform_name, ONL_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	strncpy(mlnx_platform->onie_platform_name, ONIE_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	mlnx_platform->sfp_num = NUM_OF_SFP_PORT;
+	mlnx_platform->led_num = CHASSIS_LED_COUNT;
+	mlnx_platform->psu_num = CHASSIS_PSU_COUNT;
+	mlnx_platform->fan_num = CHASSIS_FAN_COUNT;
+	mlnx_platform->thermal_num = CHASSIS_THERMAL_COUNT;
+	mlnx_platform->cpld_num = NUM_OF_CPLD;
+	mlnx_platform->psu_fixed = true;
+	mlnx_platform->fan_fixed = true;
 
-const char*
-onlp_sysi_platform_get(void)
-{
-    return ONL_PLATFORM_NAME;
-}
-
-int
-onlp_sysi_platform_info_get(onlp_platform_info_t* pi)
-{
-    int   i, v[NUM_OF_CPLD]={0};
-
-    for (i=0; i < NUM_OF_CPLD; i++) {
-        v[i] = 0;
-        if(onlp_file_read_int(v+i, "%s/%s", PREFIX_PATH_ON_CPLD_DEV, arr_cplddev_name[i]) < 0) {
-            return ONLP_STATUS_E_INTERNAL;
-        }
-    }
-    pi->cpld_versions = aim_fstrdup("brd=%d, mgmt=%d, port=%d", v[0], v[1], v[2]);
-
-    return ONLP_STATUS_OK;
+	return ONLP_STATUS_OK;
 }
 
 void
@@ -91,25 +77,21 @@ onlp_sysi_oids_get(onlp_oid_t* table, int max)
     onlp_oid_t* e = table;
     memset(table, 0, max*sizeof(onlp_oid_t));
 
-    /* 8 Thermal sensors on the chassis */
     for (i = 1; i <= NUM_OF_THERMAL_ON_MAIN_BROAD; i++)
     {
         *e++ = ONLP_THERMAL_ID_CREATE(i);
     }
 
-    /* 6 LEDs on the chassis */
     for (i = 1; i <= NUM_OF_LED_ON_MAIN_BROAD; i++)
     {
         *e++ = ONLP_LED_ID_CREATE(i);
     }
 
-    /* 2 PSUs on the chassis */
     for (i = 1; i <= NUM_OF_PSU_ON_MAIN_BROAD; i++)
     {
         *e++ = ONLP_PSU_ID_CREATE(i);
     }
 
-    /* 8 Fans and 2 PSU fans on the chassis */
     for (i = 1; i <= NUM_OF_FAN_ON_MAIN_BROAD; i++)
     {
         *e++ = ONLP_FAN_ID_CREATE(i);
@@ -155,7 +137,7 @@ onlp_sysi_platform_manage_leds(void)
 	{
 		/* each 2 fans had same led_fan */
 		onlp_fan_info_t fi;
-		/* check fan i */
+		/* check fans */
 		mode = ONLP_LED_MODE_GREEN;
 		if(onlp_fani_info_get(ONLP_FAN_ID_CREATE(fan_number), &fi) < 0) {
 			mode = ONLP_LED_MODE_RED;
