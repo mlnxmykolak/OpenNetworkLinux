@@ -71,6 +71,10 @@ onlp_sysi_platform_set(const char* platform)
         __ONIE_PLATFORM_NAME = "x86-64-mlnx_msn2410-b-r0";
         return 0;
     }
+    if(!strcmp(platform, "x86-64-mlnx-msn2700-all")) {
+    	__ONIE_PLATFORM_NAME = "x86-64-mlnx-msn2700-all";
+    	return 0;
+    }
     return ONLP_STATUS_E_UNSUPPORTED;
 }
 
