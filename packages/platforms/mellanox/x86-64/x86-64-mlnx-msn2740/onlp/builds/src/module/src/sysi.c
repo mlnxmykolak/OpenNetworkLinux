@@ -37,8 +37,7 @@
 #include "x86_64_mlnx_msn2740_log.h"
 #include <mlnx_common/mlnx_common.h>
 
-#define ONL_PLATFORM_NAME  "x86-64-mlnx-msn2740-r0"
-#define ONIE_PLATFORM_NAME "x86-64-mlnx_msn2740-r0"
+static const char* __ONIE_PLATFORM_NAME = NULL;
 
 #define NUM_OF_THERMAL_ON_MAIN_BROAD  CHASSIS_THERMAL_COUNT
 #define NUM_OF_FAN_ON_MAIN_BROAD      CHASSIS_FAN_COUNT
@@ -49,8 +48,14 @@
 
 int mc_get_platform_info(mlnx_platform_info_t* mlnx_platform)
 {
-	strncpy(mlnx_platform->onl_platform_name, ONL_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
-	strncpy(mlnx_platform->onie_platform_name, ONIE_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	if (!__ONIE_PLATFORM_NAME) {
+	    strncpy(mlnx_platform->onl_platform_name, "x86-64-mlnx-msn2740-all", PLATFORM_NAME_MAX_LEN);
+	    strncpy(mlnx_platform->onie_platform_name, "x86-64-mlnx-msn2740-all", PLATFORM_NAME_MAX_LEN);
+	}
+	else {
+	    strncpy(mlnx_platform->onl_platform_name, __ONIE_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	    strncpy(mlnx_platform->onie_platform_name, __ONIE_PLATFORM_NAME, PLATFORM_NAME_MAX_LEN);
+	}
 	mlnx_platform->sfp_num = NUM_OF_SFP_PORT;
 	mlnx_platform->led_num = CHASSIS_LED_COUNT;
 	mlnx_platform->psu_num = CHASSIS_PSU_COUNT;
@@ -61,6 +66,24 @@ int mc_get_platform_info(mlnx_platform_info_t* mlnx_platform)
 	mlnx_platform->fan_fixed = true;
 
 	return ONLP_STATUS_OK;
+}
+
+int
+onlp_sysi_platform_set(const char* platform)
+{
+    if(!strcmp(platform, "x86-64-mlnx-msn2740-r0")) {
+        __ONIE_PLATFORM_NAME = "x86-64-mlnx_msn2740-r0";
+        return 0;
+    }
+    if(!strcmp(platform, "x86-64-mlnx-msn2740b-r0")) {
+        __ONIE_PLATFORM_NAME = "x86-64-mlnx_msn2740b-r0";
+        return 0;
+    }
+    if(!strcmp(platform, "x86-64-mlnx-msn2740-all")) {	/* Is it required? */
+    	__ONIE_PLATFORM_NAME = "x86-64-mlnx-msn2740-all";
+    	return 0;
+    }
+    return ONLP_STATUS_E_UNSUPPORTED;
 }
 
 int
@@ -102,7 +125,7 @@ onlp_sysi_onie_info_get(onlp_onie_info_t* onie)
         if(onie->platform_name) {
             aim_free(onie->platform_name);
         }
-        onie->platform_name = aim_strdup(ONIE_PLATFORM_NAME);
+        onie->platform_name = aim_strdup(__ONIE_PLATFORM_NAME);
     }
 
     return rv;

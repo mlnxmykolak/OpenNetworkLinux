@@ -1,11 +1,11 @@
 from onl.platform.base import *
 from onl.platform.mellanox import *
 
-class OnlPlatform_x86_64_mlnx_msn2740_r0(OnlPlatformMellanox,
-                                               OnlPlatformPortConfig_32x100):
-    PLATFORM='x86-64-mlnx-msn2740-r0'
-    MODEL="MSN2740"
-    SYS_OBJECT_ID=".2740.1"
+class OnlPlatform_x86_64_mlnx_msn2410b_r0(OnlPlatformMellanox,
+                                           OnlPlatformPortConfig_32x40):
+    PLATFORM='x86-64-mlnx-msn2410b-r0'
+    MODEL="MSN2410B"
+    SYS_OBJECT_ID=".2410.2"
 
     def baseconfig(self):
         # load modules
