@@ -1,0 +1,1 @@
+!include $ONL_TEMPLATES/platform-config-platform.yml ARCH=arm64 VENDOR=mellanox BASENAME=arm64-mlnx-msn2700 REVISION=r0

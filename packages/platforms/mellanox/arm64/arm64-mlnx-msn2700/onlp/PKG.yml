@@ -1,0 +1,1 @@
+!include $ONL_TEMPLATES/onlp-platform-any.yml PLATFORM=arm64-mlnx-msn2700 ARCH=arm64 TOOLCHAIN=arm64-linux-gnu
