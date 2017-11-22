@@ -21,7 +21,6 @@
 THIS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 include $(ONL)/make/config.mk
 
-export ARCH := arm64
 ifndef K_TARGET_DIR
 K_TARGET_DIR := $(THIS_DIR)
 endif
@@ -31,12 +30,15 @@ K_PATCH_SERIES=series
 
 include ../../kconfig.mk
 K_CONFIG := arm64-all.config
-K_BUILD_TARGET := K_BUILD_TARGET := Image Image.gz arm64-mlnx-msn2700-r0.dtb
+K_BUILD_TARGET := Image Image.gz arm64-mlnx-msn2700-r0.dtb
 K_COPY_SRC := arch/arm64/boot/Image
 K_COPY_GZIP := 1
 ifndef K_COPY_DST
 K_COPY_DST := kernel-4.9-lts-arm64-all
 endif
+
+export ARCH := arm64
+DTS_LIST := arm64-mlnx-msn2700-r0
 
 include $(ONL)/make/kbuild.mk
 
