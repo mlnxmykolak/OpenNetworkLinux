@@ -53,6 +53,13 @@ default:
       =: kernel-3.18.25-arm64-all.bin.gz
       <<: *arm64-kernel-package
 
+    arm64-kernel-4-9-package: &arm64-kernel-4-9-package
+      package: onl-kernel-4.9-lts-arm64-all:arm64
+
+    arm64-kernel-4-9: &arm64-kernel-4-9
+      =: kernel-4.9-lts-arm64-all.bin.gz
+      <<: *arm64-kernel-4-9-package
+
     ##############################
     #
     # For your system, pick from the above list

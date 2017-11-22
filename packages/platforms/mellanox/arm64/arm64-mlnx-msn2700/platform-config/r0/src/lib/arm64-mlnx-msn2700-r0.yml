@@ -7,30 +7,38 @@
 ######################################################################
 
 arm64-mlnx-msn2700-r0:
-
-  grub:
-
-    serial: >-
-      --unit=0
-      --speed=115200
-      --word=8
-      --parity=0
-      --stop=1
-
+  flat_image_tree:
     kernel:
-      <<: *kernel-4-9
+      <<: *arm64-kernel-4-9
+    dtb:
+      =: arm64-mlnx-msn2700-r0.dtb
+      <<: *arm64-kernel-4-9-package
+    itb:
+      <<: *arm64-itb
 
-    args: >-
-      nopat
-      console=ttyS0,115200n8
-      rd_NO_MD
-      rd_NO_LUKS
-      acpi_enforce_resources=lax
-      acpi=noirq
-      i2c-ismt.enable=0
+  loader:
+    device: /dev/sda
+    ##partition: /dev/sda1
+    loadaddr: 0xa0000000
+    nos_bootcmds: *usb_bootcmds
 
-  ##network
-  ##  interfaces:
-  ##    ma1:
-  ##      name: ~
-  ##      syspath: pci0000:00/0000:00:14.0
+    environment:
+    - device: /dev/mtd2
+      env_offset: 0x00000000
+      env_size: 0x0002000
+      sector_size: 0x00020000
+
+  installer:
+  - ONL-BOOT:
+      =: 128MiB
+      format: ext2
+      ##format: raw
+  - ONL-CONFIG:
+      =: 128MiB
+      format: ext4
+  - ONL-IMAGES:
+      =: 1GiB
+      format: ext4
+  - ONL-DATA:
+      =: 100%
+      format: ext4

@@ -16,6 +16,8 @@ packages:
     files:
       builds/kernel-4.9* : $$PKG_INSTALL/
       builds/linux-*mbuild   : $$PKG_INSTALL/mbuilds
+      builds/linux-4.9*-dtbs : $$PKG_INSTALL/dtbs
+
 
     changelog:  Change changes changes.,
 
