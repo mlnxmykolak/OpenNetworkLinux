@@ -4,6 +4,6 @@
 #
 ###############################################################################
 include ../../init.mk
-MODULE := arm64mlnx_msn2700
-AUTOMODULE := arm64mlnx_msn2700
+MODULE := arm64_mlnx_msn2700
+AUTOMODULE := arm64_mlnx_msn2700
 include $(BUILDER)/definemodule.mk

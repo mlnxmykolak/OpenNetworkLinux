@@ -1,7 +1,7 @@
 from onl.platform.base import *
 from onl.platform.mellanox import *
 
-class OnlPlatform_arm64mlnx_msn2700_r0(OnlPlatformMellanox,
+class OnlPlatform_arm64_mlnx_msn2700_r0(OnlPlatformMellanox,
                                                OnlPlatformPortConfig_32x100):
     PLATFORM='arm64-mlnx-msn2700-r0'
     MODEL="SN2700"

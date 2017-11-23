@@ -3,19 +3,19 @@
  *
  *
  *****************************************************************************/
-#include <arm64mlnx_msn2700/arm64mlnx_msn2700_config.h>
+#include <arm64_mlnx_msn2700/arm64_mlnx_msn2700_config.h>
 
-#include "arm64mlnx_msn2700_log.h"
+#include "arm64_mlnx_msn2700_log.h"
 
 static int
 datatypes_init__(void)
 {
-#define arm64mlnx_msn2700_ENUMERATION_ENTRY(_enum_name, _desc)     AIM_DATATYPE_MAP_REGISTER(_enum_name, _enum_name##_map, _desc,                               AIM_LOG_INTERNAL);
-#include <arm64mlnx_msn2700/arm64mlnx_msn2700.x>
+#define arm64_mlnx_msn2700_ENUMERATION_ENTRY(_enum_name, _desc)     AIM_DATATYPE_MAP_REGISTER(_enum_name, _enum_name##_map, _desc,                               AIM_LOG_INTERNAL);
+#include <arm64_mlnx_msn2700/arm64_mlnx_msn2700.x>
     return 0;
 }
 
-void __arm64mlnx_msn2700_module_init__(void)
+void __arm64_mlnx_msn2700_module_init__(void)
 {
     AIM_LOG_STRUCT_REGISTER();
     datatypes_init__();

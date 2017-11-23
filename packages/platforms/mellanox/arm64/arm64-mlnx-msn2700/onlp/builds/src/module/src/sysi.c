@@ -33,8 +33,8 @@
 #include <onlp/platformi/sysi.h>
 #include <onlp/platformi/thermali.h>
 #include "platform_lib.h"
-#include "arm64mlnx_msn2700_int.h"
-#include "arm64mlnx_msn2700_log.h"
+#include "arm64_mlnx_msn2700_int.h"
+#include "arm64_mlnx_msn2700_log.h"
 #include <mlnx_common/mlnx_common.h>
 
 static const char* __ONIE_PLATFORM_NAME = NULL;

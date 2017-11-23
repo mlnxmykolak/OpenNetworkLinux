@@ -5,5 +5,5 @@
 ###############################################################################
 
 ucli:
-	@../../../../tools/uclihandlers.py arm64mlnx_msn2700_ucli.c
+	@../../../../tools/uclihandlers.py arm64_mlnx_msn2700_ucli.c
 

@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# arm64mlnx_msn2700 Autogeneration Definitions.
+# arm64_mlnx_msn2700 Autogeneration Definitions.
 #
 ###############################################################################
 
@@ -22,7 +22,7 @@ cdefs: &cdefs
     default: 1
 - ARM64_MLNX_MSN2700_CONFIG_PORTING_INCLUDE_STDLIB_HEADERS:
     doc: "Include standard library headers for stdlib porting macros."
-    default: arm64mlnx_msn2700_CONFIG_PORTING_STDLIB
+    default: arm64_mlnx_msn2700_CONFIG_PORTING_STDLIB
 - ARM64_MLNX_MSN2700_CONFIG_INCLUDE_UCLI:
     doc: "Include generic uCli support."
     default: 0
@@ -35,10 +35,10 @@ definitions:
   cdefs:
     ARM64_MLNX_MSN2700_CONFIG_HEADER:
       defs: *cdefs
-      basename: arm64mlnx_msn2700_config
+      basename: arm64_mlnx_msn2700_config
 
   portingmacro:
-    arm64mlnx_msn2700:
+    arm64_mlnx_msn2700:
       macros:
         - malloc
         - free

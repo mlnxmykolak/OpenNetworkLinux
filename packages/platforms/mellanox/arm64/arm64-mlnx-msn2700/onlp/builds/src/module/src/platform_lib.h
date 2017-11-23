@@ -27,7 +27,7 @@
 
 #include <onlp/fan.h>
 #include <onlp/psu.h>
-#include "arm64mlnx_msn2700_log.h"
+#include "arm64_mlnx_msn2700_log.h"
 
 #define CHASSIS_PSU_COUNT           2
 #define CHASSIS_TOTAL_FAN_COUNT     10
