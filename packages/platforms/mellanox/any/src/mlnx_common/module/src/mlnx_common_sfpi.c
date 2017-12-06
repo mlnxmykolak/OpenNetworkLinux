@@ -232,30 +232,6 @@ onlp_sfpi_dev_readw(int port, uint8_t devaddr, uint8_t addr)
 }
 
 int
-onlp_sfpi_dev_writew(int port, uint8_t devaddr, uint8_t addr, uint16_t value)
-{
-    return ONLP_STATUS_E_UNSUPPORTED;
-}
-
-int
-onlp_sfpi_control_supported(int port, onlp_sfp_control_t control, int* rv)
-{
-    return ONLP_STATUS_E_UNSUPPORTED;
-}
-
-int
-onlp_sfpi_control_set(int port, onlp_sfp_control_t control, int value)
-{
-    return ONLP_STATUS_E_UNSUPPORTED;
-}
-
-int
-onlp_sfpi_control_get(int port, onlp_sfp_control_t control, int* value)
-{
-    return ONLP_STATUS_E_UNSUPPORTED;
-}
-
-int
 onlp_sfpi_denit(void)
 {
     return ONLP_STATUS_OK;
