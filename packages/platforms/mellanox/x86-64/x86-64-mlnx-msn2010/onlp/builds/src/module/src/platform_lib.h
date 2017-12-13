@@ -31,7 +31,7 @@
 #define CHASSIS_PSU_COUNT     2
 #define CHASSIS_FAN_COUNT     4
 #define CHASSIS_THERMAL_COUNT 7
-#define SFP_PORT_COUNT       24
+#define SFP_PORT_COUNT       22
 #define CPLD_COUNT           2
 
 #endif  /* __PLATFORM_LIB_H__ */
