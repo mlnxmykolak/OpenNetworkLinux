@@ -33,3 +33,5 @@ driver-add-the-support-max6620.patch
 0030-mlxsw-minimal-Provide-optimization-for-I2C-bus-acces.patch
 0031-mlxsw-core-Skip-port-split-entries-in-hwmon-subsyste.patch
 0032-mellanox-platform-Backporting-Melanox-drivers-from-v.patch
+0033-platform-x86-mlx-platform-Modify-setting-for-new-sys.patch
+0034-platform-x86-mlx-platform-Add-support-for-next-gener.patch
