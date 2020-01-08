@@ -35,3 +35,4 @@ driver-add-the-support-max6620.patch
 0032-mellanox-platform-Backporting-Melanox-drivers-from-v.patch
 0033-platform-x86-mlx-platform-Modify-setting-for-new-sys.patch
 0034-platform-x86-mlx-platform-Add-support-for-next-gener.patch
+0035-hwmon-pmbus-core-Add-support-for-vid-mode-detection-.patch
